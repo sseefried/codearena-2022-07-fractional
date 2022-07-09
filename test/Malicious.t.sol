@@ -32,10 +32,19 @@ contract MaliciousTest is Test {
     }
 
     function testMalicious() public {
-      bytes memory data = abi.encodeCall(malicious.setIndex, (1, bytes32(uint256(0xcafebabe))));
+      bytes memory data = abi.encodeCall(malicious.setIndex, (0, bytes32(uint256(42))));
+      assertEq(unwise.blah(), 0);
+      unwise.callUnwisely(address(malicious), data);
+      assertEq(unwise.blah(), 42);
+
+
+      data = abi.encodeCall(malicious.setIndex, (1, bytes32(uint256(0xcafebabe))));
       assertEq(unwise.test(), address(0));
       unwise.callUnwisely(address(malicious), data);
       assertEq(unwise.test(), address(uint160(0xcafebabe)));
+
+
+
     }
 
 }
