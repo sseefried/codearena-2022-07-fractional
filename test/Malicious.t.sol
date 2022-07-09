@@ -56,13 +56,13 @@ contract MaliciousTest is MaliciousTestUtil {
     function testMaliciousModule() public {
       initializeMalicious(alice);
 
+      vm.startPrank(bob.addr); // Let's be bob
 
       // set the nonce back to 0
-      alice.maliciousModule.setIndex(vault, 2, bytes32(uint256(0)), setIndexProof);
-
+      maliciousModule.setIndex(vault, 2, bytes32(uint256(0)), setIndexProof);
       // This allows bob to call init()
-      vm.startPrank(bob.addr);
       IVault(vault).init();
+
       vm.stopPrank();
 
       assertEq(IVault(vault).owner(), bob.addr);
