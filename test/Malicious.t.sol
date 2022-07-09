@@ -3,6 +3,7 @@ pragma solidity 0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/targets/Malicious.sol";
+import "./MaliciousTestUtil.sol";
 
 contract Unwise {
 
@@ -17,7 +18,7 @@ contract Unwise {
 
 }
 
-contract MaliciousTest is Test {
+contract MaliciousTest is TestUtil {
 
     Unwise unwise;
     Malicious malicious;
@@ -26,7 +27,6 @@ contract MaliciousTest is Test {
     /// ===== SETUP =====
     /// =================
     function setUp() public {
-
       malicious = new Malicious();
       unwise = new Unwise();
     }
@@ -42,9 +42,9 @@ contract MaliciousTest is Test {
       assertEq(unwise.test(), address(0));
       unwise.callUnwisely(address(malicious), data);
       assertEq(unwise.test(), address(uint160(0xcafebabe)));
-
-
-
     }
+
+
+
 
 }
