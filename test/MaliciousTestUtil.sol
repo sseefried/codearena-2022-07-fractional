@@ -37,7 +37,7 @@ import {IVaultRegistry} from "../src/interfaces/IVaultRegistry.sol";
 
 import "../src/constants/Permit.sol";
 
-contract TestUtil is Test {
+contract MaliciousTestUtil is Test {
     BaseVault baseVault;
     Buyout buyoutModule;
     Metadata metadata;
@@ -62,6 +62,7 @@ contract TestUtil is Test {
         BaseVaultBS baseVault;
         BuyoutBS buyoutModule;
         MigrationBS migrationModule;
+        MaliciousModBS maliciousModule;
         MockERC721BS erc721;
         MockERC1155BS erc1155;
         MockERC20BS erc20;
@@ -93,9 +94,10 @@ contract TestUtil is Test {
 
     bytes32 merkleRoot;
     bytes32[] merkleTree;
-    bytes32[] hashes = new bytes32[](6);
+    bytes32[] hashes = new bytes32[](2);
     bytes32[] mintProof = new bytes32[](3);
     bytes32[] burnProof = new bytes32[](3);
+    bytes32[] setIndexProof = new bytes32[](3);
     bytes32[] erc20TransferProof = new bytes32[](3);
     bytes32[] erc721TransferProof = new bytes32[](3);
     bytes32[] erc1155TransferProof = new bytes32[](3);
@@ -133,6 +135,11 @@ contract TestUtil is Test {
             _privateKey,
             address(migrationModule)
         );
+        MaliciousModBS _malicious = new MaliciousModBS(
+          _addr,
+          _privateKey,
+          address(maliciousModule)
+        );
         MockERC721BS _erc721 = new MockERC721BS(
             _addr,
             _privateKey,
@@ -169,6 +176,7 @@ contract TestUtil is Test {
                 _minter,
                 _buyout,
                 _migration,
+                _malicious,
                 _erc721,
                 _erc1155,
                 _erc20,
@@ -232,23 +240,20 @@ contract TestUtil is Test {
 
     function setUpProof() public {
         modules[0] = address(baseVault);
-        modules[1] = address(buyoutModule);
+        modules[1] = address(maliciousModule);
 
         hashes[0] = baseVault.getLeafNodes()[0];
-        hashes[1] = buyoutModule.getLeafNodes()[0];
-        hashes[2] = buyoutModule.getLeafNodes()[1];
-        hashes[3] = buyoutModule.getLeafNodes()[2];
-        hashes[4] = buyoutModule.getLeafNodes()[3];
-        hashes[5] = buyoutModule.getLeafNodes()[4];
+        hashes[1] = maliciousModule.getLeafNodes()[0];
 
-        merkleTree = baseVault.generateMerkleTree(modules);
-        merkleRoot = baseVault.getRoot(merkleTree);
-        mintProof = baseVault.getProof(hashes, 0);
-        burnProof = baseVault.getProof(hashes, 1);
-        erc20TransferProof = baseVault.getProof(hashes, 2);
-        erc721TransferProof = baseVault.getProof(hashes, 3);
-        erc1155TransferProof = baseVault.getProof(hashes, 4);
-        erc1155BatchTransferProof = baseVault.getProof(hashes, 5);
+        assert(baseVault.getLeafNodes().length == 1);
+        assert(maliciousModule.getLeafNodes().length == 1);
+
+        merkleTree    = baseVault.generateMerkleTree(modules);
+        assert(merkleTree.length == 6); // WEIRD!
+
+        merkleRoot    = baseVault.getRoot(merkleTree);
+        mintProof     = baseVault.getProof(hashes, 0);
+        setIndexProof = baseVault.getProof(hashes, 1);
     }
 
     function setUpUser(uint256 _privateKey, uint256 _tokenId)
@@ -375,6 +380,13 @@ contract TestUtil is Test {
 
         vm.label(vault, "VaultProxy");
         vm.label(token, "Token");
+    }
+
+    function setUpMalicious(
+        User memory _user1
+    ) public {
+        deployBaseVault(_user1, 10000000);
+        vm.label(vault, "VaultProxy");
     }
 
     function setUpBuyoutCash(User memory _user1, User memory _user2) public {
@@ -568,6 +580,13 @@ contract TestUtil is Test {
         setApproval(_user2, vault, _approval);
         setApproval(_user2, buyout, _approval);
     }
+
+    function initializeMalicious(
+        User memory _user1
+    ) public {
+        setUpMalicious(_user1);
+    }
+
 
     function initializeMigration(
         User memory _user1,

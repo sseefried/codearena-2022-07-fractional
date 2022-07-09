@@ -18,7 +18,7 @@ contract Unwise {
 
 }
 
-contract MaliciousTest is TestUtil {
+contract MaliciousTest is MaliciousTestUtil {
 
     Unwise unwise;
     Malicious malicious;
@@ -29,6 +29,14 @@ contract MaliciousTest is TestUtil {
     function setUp() public {
       malicious = new Malicious();
       unwise = new Unwise();
+
+      setUpContract();
+      alice = setUpUser(111, 1);
+      bob = setUpUser(222, 2);
+
+      vm.label(address(this), "MaliciousTest");
+      vm.label(alice.addr, "Alice");
+      vm.label(bob.addr, "Bob");
     }
 
     function testMalicious() public {
@@ -42,6 +50,17 @@ contract MaliciousTest is TestUtil {
       assertEq(unwise.test(), address(0));
       unwise.callUnwisely(address(malicious), data);
       assertEq(unwise.test(), address(uint160(0xcafebabe)));
+    }
+
+
+    function testMaliciousModule() public {
+      initializeMalicious(alice);
+
+
+      address oldOwner = IVault(vault).owner();
+      alice.maliciousModule.setIndex(vault, 0, bytes32(uint256(uint160(bob.addr))), setIndexProof);
+      assertEq(oldOwner, IVault(vault).owner());
+
     }
 
 
