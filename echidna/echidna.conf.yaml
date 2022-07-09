@@ -1,0 +1,3 @@
+testMode: assertion
+coverage: true
+corpusDir: 'e2e-cvg'
