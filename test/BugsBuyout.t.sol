@@ -68,6 +68,8 @@ contract BuyoutTest is TestUtil {
         IBuyout(buyoutModule).end(vault, burnProof);
 
         (,,State state,,,) = bob.buyoutModule.buyoutInfo(vault);
+
+        // The buyout proposal is still LIVE!
         assertEq(uint256(state), uint256(State.LIVE));
     }
 
