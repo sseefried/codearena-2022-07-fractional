@@ -20,7 +20,12 @@ contract BuyoutReverter {
     buyoutModule.start{value: msg.value}(address(vault));
   }
 
-  function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes calldata data) external returns (bytes4) {
+  function onERC1155Received(
+     address /*operator*/,
+     address /*from*/,
+     uint256 /*id*/,
+     uint256 /*value*/,
+     bytes calldata /*data*/) external pure returns (bytes4) {
     return bytes4(0xf23a6e61);
   }
 
