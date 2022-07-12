@@ -8,12 +8,11 @@ contract BuyoutReverter {
 
   IVault vault;
   IBuyout buyoutModule;
-  bytes32[] burnProof;
 
-  constructor(address _vault, address _buyoutModule, bytes32[] memory _burnProof) {
+  constructor(address _vault, address _buyoutModule) {
     vault = IVault(_vault);
     buyoutModule = IBuyout(_buyoutModule);
-    burnProof = _burnProof;
+
   }
 
   function attack() external payable {

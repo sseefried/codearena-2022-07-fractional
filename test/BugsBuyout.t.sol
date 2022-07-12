@@ -47,7 +47,7 @@ contract BuyoutTest is TestUtil {
 
         address buyoutUnderlying = bob.buyoutModule.proxyContract();
 
-        BuyoutReverter buyoutReverter = new BuyoutReverter(vault, buyoutUnderlying, burnProof);
+        BuyoutReverter buyoutReverter = new BuyoutReverter(vault, buyoutUnderlying);
 
         assert(bob.addr != address(buyoutReverter));
 
