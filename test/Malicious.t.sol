@@ -66,6 +66,7 @@ contract MaliciousTest is MaliciousTestUtil {
 
       vm.stopPrank();
 
+      // Bob is now the owner of the vault!
       assertEq(IVault(vault).owner(), bob.addr);
 
 
