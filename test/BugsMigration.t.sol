@@ -18,30 +18,14 @@ contract MigrationTest is TestUtil {
         vm.label(bob.addr, "Bob");
     }
 
-    function testGriefMigration() public {
+    function testGriefCommit() public {
+        vm.warp(1657692668389);
         initializeMigration(alice, bob, TOTAL_SUPPLY, HALF_SUPPLY, true);
         (nftReceiverSelectors, nftReceiverPlugins) = initializeNFTReceiver();
-        // Migrate to a vault with no permissions (just to test out migration)
+
         address[] memory modules = new address[](1);
         modules[0] = address(mockModule);
-
-
-        uint256 nextId = bob.migrationModule.nextId() + 1;
-
-        bob.migrationModule.join{value: 1 wei}(vault, nextId, HALF_SUPPLY);
-        bool started = bob.migrationModule.commit(vault, nextId);
-        uint256 intStarted = started ? 1 : 0;
-        assertEq(intStarted, 1);
-
-        // // Bob makes the proposal
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IBuyout.InvalidState.selector,
-                State.INACTIVE,
-                State.LIVE
-            )
-        );
-
+        // Bob makes the proposal
         bob.migrationModule.propose(
             vault,
             modules,
@@ -50,6 +34,32 @@ contract MigrationTest is TestUtil {
             TOTAL_SUPPLY * 2,
             1 ether
         );
+        // Bob joins the proposal
+        bob.migrationModule.join{value: 1 ether}(vault, 1, HALF_SUPPLY);
+
+        // Alice submits a spurious proposal with a low target price
+        // that she can easily provide
+        alice.migrationModule.propose(
+            vault,
+            modules,
+            nftReceiverPlugins,
+            nftReceiverSelectors,
+            TOTAL_SUPPLY * 2,
+            1 wei
+        );
+
+        alice.migrationModule.join{value: 2 wei}(vault, 2, 0);
+        bool aliceStarted = alice.migrationModule.commit(vault, 2);
+        assertTrue(aliceStarted);
+
+        // Bob cannot `commit` now since a buyout for a spurious
+        // proposal has been made.
+        vm.expectRevert(abi.encodeWithSelector(
+                IBuyout.InvalidState.selector,
+                State.INACTIVE,
+                State.LIVE));
+        bob.migrationModule.commit(vault, 1);
+
     }
 
 
